@@ -21,7 +21,7 @@ func (pc *PostsController) CreatePost(title, content string, tags []string) (map
         PublishDate: sql.NullTime{Time: time.Now(), Valid: true},
     }
 
-    result, err := post.Create(pc.DB)
+    result, err := post.CreatePost(pc.DB)
     if err != nil {
         return nil, err
     }
@@ -29,17 +29,55 @@ func (pc *PostsController) CreatePost(title, content string, tags []string) (map
     return result, nil
 }
 
-func (pc *PostsController) UpdatePost(idStr, title, content, status, publishDate string, tags []string) error {
+func (pc *PostsController) UpdatePost(idStr, title, content string, tags []string) (map[string]interface{}, error) {
     id, err := uuid.Parse(idStr)
+    post := models.Posts{
+        ID: id, 
+        Title: title, 
+        Content: content, 
+        Tags: tags,
+    }
+
+    result,err := post.UpdatePost(pc.DB)
     if err != nil {
-        return err
+        return nil, err
     }
-    post := models.Posts{ID: id, Title: title, Content: content, Status: status, Tags: tags}
-    if publishDate != "" {
-        t, err := time.Parse("2006-01-02", publishDate)
-        if err == nil {
-            post.PublishDate = sql.NullTime{Time: t, Valid: true}
-        }
+
+    return result, nil
+}
+
+func (pc *PostsController) GetAllPosts(tagQuery string) ([]map[string]interface{}, error) {
+    posts, err := models.GetPosts(pc.DB, tagQuery)
+    if err != nil {
+        return nil, err
     }
-    return post.Update(pc.DB)
+    return posts, nil
+}
+
+func (pc *PostsController) GetPost(idStr string) (map[string]interface{}, error) {
+    id, err := uuid.Parse(idStr)
+    post := models.Posts{
+        ID: id,
+    }
+    result, err := post.GetPost(pc.DB)
+    if err != nil {
+        return nil, err
+    }
+
+    return result, nil
+
+}
+
+func (pc *PostsController) DeletePost(idStr string) (map[string]interface{}, error) {
+    id, err := uuid.Parse(idStr)
+    post := models.Posts{
+        ID: id,
+    }
+    result, err := post.DeletePost(pc.DB)
+    if err != nil {
+        return nil, err
+    }
+
+    return result, nil
+
 }
